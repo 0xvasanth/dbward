@@ -11,6 +11,10 @@ export async function createAdapter(config: Config): Promise<DbAdapter> {
       const { PostgresAdapter } = await import('./postgres.js');
       return new PostgresAdapter(config.dbUrl, config.queryTimeoutMs);
     }
+    case 'mysql': {
+      const { MysqlAdapter } = await import('./mysql.js');
+      return new MysqlAdapter(config.dbUrl, config.queryTimeoutMs);
+    }
     default:
       throw new Error(`Adapter not yet implemented: ${config.dbType}`);
   }
