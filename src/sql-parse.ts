@@ -40,25 +40,36 @@ export function extractTables(sql: string, dbType: SqlDbType): string[] {
  * the target as a bare string at `expr[].table`. A fully recursive walker that
  * collects any string-valued `table` property covers all shapes.
  *
- * We skip `column_ref` nodes because their `table` field is an alias reference
- * (`o.id` -> `{type:'column_ref', table:'o', column:'id'}`), not a table ref.
+ * For `column_ref` nodes (`o.id` -> `{type:'column_ref', table:'o', column:'id'}`)
+ * we skip ONLY the node's own `table` field (it's an alias, not a real table),
+ * but still recurse into the rest of its children — Postgres UPDATE set-list
+ * entries are column_refs whose `value.ast` carries the assigned expression,
+ * which may include subqueries referencing forbidden tables.
  * GRANT statements are handled specially because node-sql-parser places the
  * target at `on.priv_level[].name` rather than anywhere called `table`.
  */
-function harvestTables(node: unknown, out: string[]): void {
+function harvestTables(node: unknown, out: string[], visited: WeakSet<object> = new WeakSet()): void {
   if (!node || typeof node !== 'object') return;
+  if (visited.has(node)) return;
+  visited.add(node);
   if (Array.isArray(node)) {
-    for (const item of node) harvestTables(item, out);
+    for (const item of node) harvestTables(item, out, visited);
     return;
   }
   const n = node as Record<string, unknown>;
 
-  // Skip column_ref nodes — their `table` is an alias, not a real table ref.
-  if (n.type === 'column_ref') return;
+  // column_ref nodes (`o.id` -> {type:'column_ref', table:'o', column:'id'})
+  // carry an ALIAS at `table`, not a real table ref. We must NOT harvest that
+  // field, but we still have to recurse into the node's other children — e.g.
+  // in Postgres, UPDATE set-list entries are column_ref nodes whose assigned
+  // value's AST lives at `value.ast`, which can contain subqueries referencing
+  // forbidden tables. Previously we short-circuited here and missed them.
+  const isColumnRef = n.type === 'column_ref';
 
   // Direct table-as-string at this node (covers ALTER RENAME TO's expr[].table
-  // as well as the inner `table: 'x'` inside a {db, table} ref object).
-  if (typeof n.table === 'string' && n.table.length > 0) {
+  // as well as the inner `table: 'x'` inside a {db, table} ref object). Skip
+  // for column_ref since its `table` field is an alias.
+  if (!isColumnRef && typeof n.table === 'string' && n.table.length > 0) {
     out.push(n.table);
   }
 
@@ -85,8 +96,11 @@ function harvestTables(node: unknown, out: string[]): void {
     }
   }
 
-  for (const v of Object.values(n)) {
-    harvestTables(v, out);
+  for (const [k, v] of Object.entries(n)) {
+    // For column_ref: skip the alias `table` field, but still walk siblings
+    // like `value.ast` where subqueries hide.
+    if (isColumnRef && k === 'table') continue;
+    harvestTables(v, out, visited);
   }
 }
 
