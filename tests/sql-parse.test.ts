@@ -65,6 +65,29 @@ describe('extractTables (postgres dialect)', () => {
   it('throws on unparseable SQL', () => {
     expect(() => extract('this is not sql at all ;;;')).toThrow();
   });
+
+  it('CREATE INDEX extracts target table', () => {
+    expect(extract('CREATE INDEX ix ON secrets (id)')).toContain('secrets');
+  });
+
+  it('DROP INDEX extracts target table (MySQL dialect)', () => {
+    expect(extractTables('DROP INDEX ix ON secrets', 'mysql')).toContain('secrets');
+  });
+
+  it('ALTER TABLE ... RENAME TO extracts both tables', () => {
+    const result = extract('ALTER TABLE a RENAME TO b');
+    expect(result).toContain('a');
+    expect(result).toContain('b');
+  });
+
+  it('GRANT extracts target table', () => {
+    expect(extract('GRANT SELECT ON secrets TO public')).toContain('secrets');
+  });
+
+  it('CREATE TRIGGER extracts target table', () => {
+    const sql = "CREATE TRIGGER trg BEFORE INSERT ON secrets FOR EACH ROW EXECUTE FUNCTION f()";
+    expect(extract(sql)).toContain('secrets');
+  });
 });
 
 describe('getStatementTypes', () => {

@@ -1,6 +1,7 @@
-import { Parser } from 'node-sql-parser';
+import pkg from 'node-sql-parser';
 import type { DbType } from './config.js';
 
+const { Parser } = pkg;
 const parser = new Parser();
 
 const DIALECT: Record<Exclude<DbType, 'mongodb'>, string> = {
@@ -19,45 +20,66 @@ export type SqlDbType = Exclude<DbType, 'mongodb'>;
  */
 export function extractTables(sql: string, dbType: SqlDbType): string[] {
   const database = DIALECT[dbType];
-  const list = parser.tableList(sql, { database });
-  const names = new Set<string>();
-  for (const entry of list) {
-    // entries are "<op>::<schema>::<table>"
-    const parts = entry.split('::');
-    const table = parts[parts.length - 1];
-    if (table) names.add(table.toLowerCase());
-  }
-  // tableList() (v5.4) misses some DDL statements (notably ALTER TABLE), so
-  // we also walk the AST and harvest any table references we find there.
   const ast = parser.astify(sql, { database });
   const asts = Array.isArray(ast) ? ast : [ast];
+  const names = new Set<string>();
+  const collected: string[] = [];
   for (const node of asts) {
-    for (const name of tablesFromAst(node)) {
-      names.add(name.toLowerCase());
-    }
+    harvestTables(node, collected);
+  }
+  for (const name of collected) {
+    if (name.length > 0) names.add(name.toLowerCase());
   }
   return [...names];
 }
 
-type TableRef = { table?: string | null };
-
-function tablesFromAst(node: unknown): string[] {
-  if (!node || typeof node !== 'object') return [];
-  const out: string[] = [];
+/**
+ * Recursively walk the AST and harvest every table reference. node-sql-parser
+ * is inconsistent: some statements put targets at `.table` as `[{db, table}]`
+ * arrays, some as a singular `{db, table}` object, and ALTER's RENAME TO puts
+ * the target as a bare string at `expr[].table`. A fully recursive walker that
+ * collects any string-valued `table` property covers all shapes.
+ *
+ * We skip `column_ref` nodes because their `table` field is an alias reference
+ * (`o.id` -> `{type:'column_ref', table:'o', column:'id'}`), not a table ref.
+ * GRANT statements are handled specially because node-sql-parser places the
+ * target at `on.priv_level[].name` rather than anywhere called `table`.
+ */
+function harvestTables(node: unknown, out: string[]): void {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const item of node) harvestTables(item, out);
+    return;
+  }
   const n = node as Record<string, unknown>;
-  // ALTER TABLE: { type: 'alter', table: [{db, table}] }
-  // DROP TABLE: { type: 'drop', name: [{db, table}] }
-  // CREATE TABLE: { type: 'create', table: [{db, table}] }
-  for (const key of ['table', 'name']) {
-    const val = n[key];
-    if (Array.isArray(val)) {
-      for (const ref of val) {
-        const t = (ref as TableRef)?.table;
-        if (typeof t === 'string' && t.length > 0) out.push(t);
+
+  // Skip column_ref nodes — their `table` is an alias, not a real table ref.
+  if (n.type === 'column_ref') return;
+
+  // Direct table-as-string at this node (covers ALTER RENAME TO's expr[].table
+  // as well as the inner `table: 'x'` inside a {db, table} ref object).
+  if (typeof n.table === 'string' && n.table.length > 0) {
+    out.push(n.table);
+  }
+
+  // GRANT target lives at on.priv_level[].name, not anywhere named `table`.
+  if (n.type === 'grant' && n.on && typeof n.on === 'object') {
+    const privLevel = (n.on as Record<string, unknown>).priv_level;
+    if (Array.isArray(privLevel)) {
+      for (const p of privLevel) {
+        if (p && typeof p === 'object') {
+          const name = (p as Record<string, unknown>).name;
+          if (typeof name === 'string' && name.length > 0) {
+            out.push(name);
+          }
+        }
       }
     }
   }
-  return out;
+
+  for (const v of Object.values(n)) {
+    harvestTables(v, out);
+  }
 }
 
 /**
