@@ -7,6 +7,10 @@ export async function createAdapter(config: Config): Promise<DbAdapter> {
       const { SqliteAdapter } = await import('./sqlite.js');
       return new SqliteAdapter(config.dbUrl);
     }
+    case 'postgres': {
+      const { PostgresAdapter } = await import('./postgres.js');
+      return new PostgresAdapter(config.dbUrl, config.queryTimeoutMs);
+    }
     default:
       throw new Error(`Adapter not yet implemented: ${config.dbType}`);
   }
