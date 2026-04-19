@@ -97,7 +97,27 @@ npm run build    # -> dist/
 npm run dev      # run from source (requires env vars)
 ```
 
-Integration tests for Postgres/MySQL/MSSQL/Mongo require Docker and are gated on `TEST_INTEGRATION=1`.
+## Integration testing
+
+All adapters except SQLite (which uses in-memory) require running databases. A `docker-compose.yml` is provided:
+
+```bash
+docker compose up -d
+# wait for all services to be healthy
+docker compose ps
+# run integration tests
+TEST_INTEGRATION=1 npm test
+# tear down
+docker compose down -v
+```
+
+Ports used on the host:
+- Postgres: 15432
+- MySQL: 13306
+- MSSQL: 11433
+- MongoDB: 37017
+
+Services run as user `dbward` / password `dbward` (MSSQL uses `sa` / `Dbward_Test_123!`) against a database/collection called `dbward_test`.
 
 ## License
 
