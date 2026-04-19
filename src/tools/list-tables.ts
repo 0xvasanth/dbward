@@ -4,7 +4,7 @@ import { isAllowed } from '../allowlist.js';
 
 export async function listTablesHandler(
   adapter: DbAdapter,
-  config: Config
+  config: Config,
 ): Promise<{ tables: string[] }> {
   const all = await adapter.listTables();
   const mode = config.dbType === 'mongodb' ? 'mongo' : 'sql';

@@ -22,30 +22,24 @@ const baseCfg: Config = {
 
 describe('listTablesHandler', () => {
   it('filters to allowlist for sql', async () => {
-    const result = await listTablesHandler(
-      mockAdapter(['users', 'secrets', 'orders']),
-      baseCfg
-    );
+    const result = await listTablesHandler(mockAdapter(['users', 'secrets', 'orders']), baseCfg);
     expect(result.tables.sort()).toEqual(['orders', 'users']);
   });
 
   it('wildcard returns all', async () => {
-    const result = await listTablesHandler(
-      mockAdapter(['users', 'secrets', 'orders']),
-      { ...baseCfg, allowlist: { type: 'wildcard' } }
-    );
+    const result = await listTablesHandler(mockAdapter(['users', 'secrets', 'orders']), {
+      ...baseCfg,
+      allowlist: { type: 'wildcard' },
+    });
     expect(result.tables.sort()).toEqual(['orders', 'secrets', 'users']);
   });
 
   it('mongo filters case-sensitively', async () => {
-    const result = await listTablesHandler(
-      mockAdapter(['Users', 'users', 'Orders']),
-      {
-        ...baseCfg,
-        dbType: 'mongodb',
-        allowlist: { type: 'list', tables: new Set(['Users']) },
-      }
-    );
+    const result = await listTablesHandler(mockAdapter(['Users', 'users', 'Orders']), {
+      ...baseCfg,
+      dbType: 'mongodb',
+      allowlist: { type: 'list', tables: new Set(['Users']) },
+    });
     expect(result.tables).toEqual(['Users']);
   });
 });

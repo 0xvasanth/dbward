@@ -58,7 +58,7 @@ describe('executeQueryHandler (SQL)', () => {
       },
     };
     await expect(
-      executeQueryHandler(adapter, cfg(), { sql: 'SELECT * FROM secrets' })
+      executeQueryHandler(adapter, cfg(), { sql: 'SELECT * FROM secrets' }),
     ).rejects.toThrow(ToolError);
     expect(called).toBe(false);
   });
@@ -76,7 +76,7 @@ describe('executeQueryHandler (SQL)', () => {
     await expect(
       executeQueryHandler(adapter, cfg({ readOnly: true }), {
         sql: "INSERT INTO users (name) VALUES ('x')",
-      })
+      }),
     ).rejects.toThrow(ToolError);
   });
 });

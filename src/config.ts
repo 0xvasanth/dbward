@@ -2,9 +2,7 @@ import { z } from 'zod';
 
 export type DbType = 'postgres' | 'mysql' | 'sqlite' | 'mssql' | 'mongodb';
 
-export type Allowlist =
-  | { type: 'wildcard' }
-  | { type: 'list'; tables: Set<string> };
+export type Allowlist = { type: 'wildcard' } | { type: 'list'; tables: Set<string> };
 
 export interface Config {
   dbType: DbType;

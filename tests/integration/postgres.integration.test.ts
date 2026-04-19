@@ -29,7 +29,7 @@ describe.skipIf(!runContainers)('postgres integration (container)', () => {
       throw new Error(
         `Could not connect to Postgres at ${url}. ` +
           `Did you run \`docker compose up -d\` and wait for the service to be healthy? ` +
-          `Underlying error: ${(err as Error).message}`
+          `Underlying error: ${(err as Error).message}`,
       );
     }
   });
@@ -69,9 +69,9 @@ describe.skipIf(!runContainers)('postgres integration (container)', () => {
   });
 
   it('describe_table rejects disallowed table', async () => {
-    await expect(
-      describeTableHandler(adapter, cfg, { table: 'dbward_secrets' })
-    ).rejects.toThrow(ToolError);
+    await expect(describeTableHandler(adapter, cfg, { table: 'dbward_secrets' })).rejects.toThrow(
+      ToolError,
+    );
   });
 
   it('execute_query allowed SELECT returns rows', async () => {
@@ -85,7 +85,7 @@ describe.skipIf(!runContainers)('postgres integration (container)', () => {
     await expect(
       executeQueryHandler(adapter, cfg, {
         sql: 'SELECT * FROM dbward_users JOIN dbward_secrets ON 1=1',
-      })
+      }),
     ).rejects.toThrow(ToolError);
   });
 });

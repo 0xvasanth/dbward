@@ -33,36 +33,26 @@ describe('checkSqlAllowed', () => {
 
   it('wildcard skips table check', () => {
     expect(
-      checkSqlAllowed('SELECT * FROM anything', cfg({ allowlist: { type: 'wildcard' } }))
+      checkSqlAllowed('SELECT * FROM anything', cfg({ allowlist: { type: 'wildcard' } })),
     ).toEqual({ ok: true });
   });
 
   it('READ_ONLY rejects INSERT', () => {
-    const r = checkSqlAllowed(
-      "INSERT INTO users (name) VALUES ('x')",
-      cfg({ readOnly: true })
-    );
+    const r = checkSqlAllowed("INSERT INTO users (name) VALUES ('x')", cfg({ readOnly: true }));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toMatch(/read.?only/i);
   });
 
   it('READ_ONLY allows SELECT', () => {
-    expect(
-      checkSqlAllowed('SELECT * FROM users', cfg({ readOnly: true }))
-    ).toEqual({ ok: true });
+    expect(checkSqlAllowed('SELECT * FROM users', cfg({ readOnly: true }))).toEqual({ ok: true });
   });
 
   it('rejects multi-statement if any statement disallowed', () => {
-    const r = checkSqlAllowed(
-      'SELECT * FROM users; DELETE FROM secrets',
-      cfg()
-    );
+    const r = checkSqlAllowed('SELECT * FROM users; DELETE FROM secrets', cfg());
     expect(r.ok).toBe(false);
   });
 
   it('case-insensitive (schema-qualified)', () => {
-    expect(
-      checkSqlAllowed('SELECT * FROM public.USERS', cfg())
-    ).toEqual({ ok: true });
+    expect(checkSqlAllowed('SELECT * FROM public.USERS', cfg())).toEqual({ ok: true });
   });
 });

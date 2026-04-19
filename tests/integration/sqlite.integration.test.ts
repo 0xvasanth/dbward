@@ -41,9 +41,7 @@ describe('sqlite end-to-end tool pipeline', () => {
   });
 
   it('describe_table rejects disallowed', async () => {
-    await expect(
-      describeTableHandler(a, cfg, { table: 'secrets' })
-    ).rejects.toThrow(ToolError);
+    await expect(describeTableHandler(a, cfg, { table: 'secrets' })).rejects.toThrow(ToolError);
   });
 
   it('execute_query allowed SELECT', async () => {
@@ -55,7 +53,7 @@ describe('sqlite end-to-end tool pipeline', () => {
     await expect(
       executeQueryHandler(a, cfg, {
         sql: 'SELECT * FROM users JOIN secrets ON 1=1',
-      })
+      }),
     ).rejects.toThrow(ToolError);
   });
 });

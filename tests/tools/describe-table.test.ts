@@ -41,9 +41,7 @@ describe('describeTableHandler', () => {
         return cols;
       },
     };
-    await expect(
-      describeTableHandler(spy, cfg, { table: 'secrets' })
-    ).rejects.toThrow(ToolError);
+    await expect(describeTableHandler(spy, cfg, { table: 'secrets' })).rejects.toThrow(ToolError);
     expect(called).toBe(false);
   });
 });

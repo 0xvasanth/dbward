@@ -9,7 +9,10 @@ describe('extractTables (postgres dialect)', () => {
   });
 
   it('JOIN', () => {
-    expect(extract('SELECT * FROM users u JOIN orders o ON o.user_id = u.id').sort()).toEqual(['orders', 'users']);
+    expect(extract('SELECT * FROM users u JOIN orders o ON o.user_id = u.id').sort()).toEqual([
+      'orders',
+      'users',
+    ]);
   });
 
   it('subquery', () => {
@@ -18,14 +21,17 @@ describe('extractTables (postgres dialect)', () => {
 
   it('CTE', () => {
     expect(
-      extract('WITH x AS (SELECT * FROM users) SELECT * FROM x JOIN orders ON orders.id = x.id').sort()
+      extract(
+        'WITH x AS (SELECT * FROM users) SELECT * FROM x JOIN orders ON orders.id = x.id',
+      ).sort(),
     ).toEqual(expect.arrayContaining(['users', 'orders']));
   });
 
   it('UNION', () => {
-    expect(
-      extract('SELECT id FROM users UNION SELECT id FROM orders').sort()
-    ).toEqual(['orders', 'users']);
+    expect(extract('SELECT id FROM users UNION SELECT id FROM orders').sort()).toEqual([
+      'orders',
+      'users',
+    ]);
   });
 
   it('INSERT', () => {
@@ -57,9 +63,7 @@ describe('extractTables (postgres dialect)', () => {
   });
 
   it('multi-statement returns union of tables', () => {
-    expect(
-      extract('SELECT * FROM users; DELETE FROM orders').sort()
-    ).toEqual(['orders', 'users']);
+    expect(extract('SELECT * FROM users; DELETE FROM orders').sort()).toEqual(['orders', 'users']);
   });
 
   it('throws on unparseable SQL', () => {
@@ -85,7 +89,7 @@ describe('extractTables (postgres dialect)', () => {
   });
 
   it('CREATE TRIGGER extracts target table', () => {
-    const sql = "CREATE TRIGGER trg BEFORE INSERT ON secrets FOR EACH ROW EXECUTE FUNCTION f()";
+    const sql = 'CREATE TRIGGER trg BEFORE INSERT ON secrets FOR EACH ROW EXECUTE FUNCTION f()';
     expect(extract(sql)).toContain('secrets');
   });
 
@@ -113,7 +117,9 @@ describe('extractTables (postgres dialect)', () => {
   });
 
   it('INSERT with scalar subquery extracts forbidden table', () => {
-    const result = extract('INSERT INTO users (id, name) VALUES (1, (SELECT payload FROM secrets LIMIT 1))');
+    const result = extract(
+      'INSERT INTO users (id, name) VALUES (1, (SELECT payload FROM secrets LIMIT 1))',
+    );
     expect(result).toContain('secrets');
   });
 

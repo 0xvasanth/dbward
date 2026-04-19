@@ -54,14 +54,12 @@ describe('loadConfig', () => {
   });
 
   it('rejects unknown DB_TYPE', () => {
-    expect(() =>
-      loadConfig({ DB_TYPE: 'oracle', DB_URL: 'x', ALLOWED_TABLES: '*' })
-    ).toThrow();
+    expect(() => loadConfig({ DB_TYPE: 'oracle', DB_URL: 'x', ALLOWED_TABLES: '*' })).toThrow();
   });
 
   it('rejects empty ALLOWED_TABLES', () => {
     expect(() =>
-      loadConfig({ DB_TYPE: 'sqlite', DB_URL: ':memory:', ALLOWED_TABLES: '' })
+      loadConfig({ DB_TYPE: 'sqlite', DB_URL: ':memory:', ALLOWED_TABLES: '' }),
     ).toThrow();
   });
 
@@ -86,7 +84,7 @@ describe('loadConfig', () => {
         DB_URL: ':memory:',
         ALLOWED_TABLES: '*',
         MAX_ROWS: 'abc',
-      })
+      }),
     ).toThrow();
   });
 
@@ -97,7 +95,7 @@ describe('loadConfig', () => {
         DB_URL: ':memory:',
         ALLOWED_TABLES: '*',
         MAX_ROWS: '100abc',
-      })
+      }),
     ).toThrow();
   });
 });

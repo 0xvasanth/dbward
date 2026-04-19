@@ -39,7 +39,7 @@ const MONGO_WRITE_OPS = new Set([
 export async function executeQueryHandler(
   adapter: DbAdapter,
   config: Config,
-  input: SqlInput | MongoInput
+  input: SqlInput | MongoInput,
 ): Promise<QueryResult> {
   if (config.dbType === 'mongodb') {
     return executeMongo(adapter, config, input as MongoInput);
@@ -50,7 +50,7 @@ export async function executeQueryHandler(
 async function executeSql(
   adapter: DbAdapter,
   config: Config,
-  input: SqlInput
+  input: SqlInput,
 ): Promise<QueryResult> {
   const check = checkSqlAllowed(input.sql, config);
   if (!check.ok) throw new ToolError(check.reason);
@@ -66,20 +66,16 @@ async function executeSql(
 async function executeMongo(
   adapter: DbAdapter,
   config: Config,
-  input: MongoInput
+  input: MongoInput,
 ): Promise<QueryResult> {
   if (!input.collection || typeof input.collection !== 'string') {
     throw new ToolError('collection is required');
   }
   if (!isAllowed(config.allowlist, input.collection, 'mongo')) {
-    throw new ToolError(
-      `Collection '${input.collection}' is not in ALLOWED_TABLES`
-    );
+    throw new ToolError(`Collection '${input.collection}' is not in ALLOWED_TABLES`);
   }
   if (config.readOnly && MONGO_WRITE_OPS.has(input.operation)) {
-    throw new ToolError(
-      `READ_ONLY mode: operation '${input.operation}' is not allowed`
-    );
+    throw new ToolError(`READ_ONLY mode: operation '${input.operation}' is not allowed`);
   }
   const raw = await adapter.execute({ kind: 'mongo', ...input });
   return applyMaxRows(raw, config.maxRows);

@@ -1,10 +1,5 @@
 import pg from 'pg';
-import type {
-  ColumnInfo,
-  DbAdapter,
-  QueryRequest,
-  QueryResult,
-} from './types.js';
+import type { ColumnInfo, DbAdapter, QueryRequest, QueryResult } from './types.js';
 import { sanitizeDriverError } from '../errors.js';
 
 export class PostgresAdapter implements DbAdapter {
@@ -12,7 +7,7 @@ export class PostgresAdapter implements DbAdapter {
 
   constructor(
     private readonly url: string,
-    private readonly timeoutMs: number
+    private readonly timeoutMs: number,
   ) {}
 
   async connect(): Promise<void> {
@@ -33,7 +28,7 @@ export class PostgresAdapter implements DbAdapter {
     const r = await client.query(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = ANY (current_schemas(false))
-       ORDER BY table_name`
+       ORDER BY table_name`,
     );
     return r.rows.map((row) => row.table_name as string);
   }
@@ -47,7 +42,7 @@ export class PostgresAdapter implements DbAdapter {
          WHERE table_schema = ANY (current_schemas(false))
            AND lower(table_name) = lower($1)
          ORDER BY ordinal_position`,
-        [table]
+        [table],
       );
       return r.rows.map((row) => ({
         name: row.column_name,

@@ -31,15 +31,11 @@ describe('MCP server integration', () => {
       sql: `INSERT INTO users (id, name) VALUES (1, 'alice'), (2, 'bob')`,
     });
 
-    const [clientTransport, serverTransport] =
-      InMemoryTransport.createLinkedPair();
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 
     await connectServer(adapter, baseCfg, serverTransport);
 
-    client = new Client(
-      { name: 'test-client', version: '0.0.0' },
-      { capabilities: {} }
-    );
+    client = new Client({ name: 'test-client', version: '0.0.0' }, { capabilities: {} });
     await client.connect(clientTransport);
   });
 
@@ -70,10 +66,7 @@ describe('MCP server integration', () => {
     expect(res.isError).toBeFalsy();
     const content = res.content as Array<{ type: string; text: string }>;
     const parsed = JSON.parse(content[0].text);
-    expect(parsed.columns.map((c: { name: string }) => c.name)).toEqual([
-      'id',
-      'name',
-    ]);
+    expect(parsed.columns.map((c: { name: string }) => c.name)).toEqual(['id', 'name']);
   });
 
   it('calls execute_query and returns rows', async () => {
@@ -108,10 +101,7 @@ describe('MCP server integration', () => {
       sql: `CREATE TABLE secrets (id INTEGER)`,
     });
     await connectServer(secondAdapter, cfg, st);
-    const c2 = new Client(
-      { name: 'test', version: '0.0.0' },
-      { capabilities: {} }
-    );
+    const c2 = new Client({ name: 'test', version: '0.0.0' }, { capabilities: {} });
     await c2.connect(ct);
     try {
       const res = await c2.callTool({
