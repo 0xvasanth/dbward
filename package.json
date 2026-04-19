@@ -1,7 +1,30 @@
 {
   "name": "dbward",
   "version": "0.1.0",
-  "description": "MCP server for any SQL or Mongo database with table-level allowlist enforcement",
+  "description": "MCP server for PostgreSQL, MySQL, SQLite, MSSQL and MongoDB with per-table allowlist enforcement",
+  "license": "MIT",
+  "author": "Vasanth",
+  "homepage": "https://github.com/0xvasanth/dbward#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xvasanth/dbward.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0xvasanth/dbward/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "database",
+    "postgres",
+    "mysql",
+    "sqlite",
+    "mssql",
+    "mongodb",
+    "allowlist",
+    "security"
+  ],
   "type": "module",
   "bin": {
     "dbward": "./dist/index.js"
@@ -9,7 +32,8 @@
   "main": "./dist/index.js",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
