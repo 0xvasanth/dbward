@@ -78,4 +78,26 @@ describe('loadConfig', () => {
     expect(cfg.queryTimeoutMs).toBe(5000);
     expect(cfg.readOnly).toBe(true);
   });
+
+  it('rejects non-numeric MAX_ROWS', () => {
+    expect(() =>
+      loadConfig({
+        DB_TYPE: 'sqlite',
+        DB_URL: ':memory:',
+        ALLOWED_TABLES: '*',
+        MAX_ROWS: 'abc',
+      })
+    ).toThrow();
+  });
+
+  it('rejects partially-numeric MAX_ROWS', () => {
+    expect(() =>
+      loadConfig({
+        DB_TYPE: 'sqlite',
+        DB_URL: ':memory:',
+        ALLOWED_TABLES: '*',
+        MAX_ROWS: '100abc',
+      })
+    ).toThrow();
+  });
 });
