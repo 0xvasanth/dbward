@@ -77,6 +77,14 @@ function harvestTables(node: unknown, out: string[]): void {
     }
   }
 
+  // CREATE VIEW target lives at view.view (not view.table).
+  if (n.type === 'create' && n.keyword === 'view' && n.view && typeof n.view === 'object') {
+    const viewName = (n.view as Record<string, unknown>).view;
+    if (typeof viewName === 'string' && viewName.length > 0) {
+      out.push(viewName);
+    }
+  }
+
   for (const v of Object.values(n)) {
     harvestTables(v, out);
   }

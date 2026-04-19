@@ -88,6 +88,18 @@ describe('extractTables (postgres dialect)', () => {
     const sql = "CREATE TRIGGER trg BEFORE INSERT ON secrets FOR EACH ROW EXECUTE FUNCTION f()";
     expect(extract(sql)).toContain('secrets');
   });
+
+  it('CREATE VIEW extracts target view name', () => {
+    expect(extract('CREATE VIEW secrets AS SELECT 1')).toContain('secrets');
+  });
+
+  it('CREATE OR REPLACE VIEW extracts target view name', () => {
+    expect(extract('CREATE OR REPLACE VIEW secrets AS SELECT 1')).toContain('secrets');
+  });
+
+  it('DROP VIEW extracts target view name', () => {
+    expect(extract('DROP VIEW secrets')).toContain('secrets');
+  });
 });
 
 describe('getStatementTypes', () => {
