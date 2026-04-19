@@ -100,6 +100,29 @@ describe('extractTables (postgres dialect)', () => {
   it('DROP VIEW extracts target view name', () => {
     expect(extract('DROP VIEW secrets')).toContain('secrets');
   });
+
+  it('UPDATE SET scalar subquery extracts forbidden table', () => {
+    const result = extract('UPDATE users SET name = (SELECT payload FROM secrets WHERE id=1)');
+    expect(result).toContain('users');
+    expect(result).toContain('secrets');
+  });
+
+  it('UPDATE SET scalar subquery with coalesce extracts forbidden table', () => {
+    const result = extract("UPDATE users SET name = coalesce((SELECT payload FROM secrets), 'x')");
+    expect(result).toContain('secrets');
+  });
+
+  it('INSERT with scalar subquery extracts forbidden table', () => {
+    const result = extract('INSERT INTO users (id, name) VALUES (1, (SELECT payload FROM secrets LIMIT 1))');
+    expect(result).toContain('secrets');
+  });
+
+  it('JOIN aliases still do not leak as tables', () => {
+    const result = extract('SELECT u.id, o.total FROM users u JOIN orders o ON o.user_id = u.id');
+    expect(result).toEqual(expect.arrayContaining(['users', 'orders']));
+    expect(result).not.toContain('u');
+    expect(result).not.toContain('o');
+  });
 });
 
 describe('getStatementTypes', () => {
