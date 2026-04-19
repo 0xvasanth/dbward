@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -32,28 +34,56 @@ jobs:
           version=$(node -p "require('./package.json').version")
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
 
-      - name: Check if version already published
-        id: check
+      - name: Check if npm publish is needed
+        id: publish_check
         env:
           PKG_NAME: ${{ steps.meta.outputs.name }}
           PKG_VERSION: ${{ steps.meta.outputs.version }}
         run: |
           published=$(npm view "$PKG_NAME@$PKG_VERSION" version 2>/dev/null || true)
           if [ "$published" = "$PKG_VERSION" ]; then
-            echo "Version $PKG_VERSION already published; skipping."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Version $PKG_VERSION already on npm; skipping publish."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "Version $PKG_VERSION is new; will publish."
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Version $PKG_VERSION is new on npm; will publish."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check if git tag is needed
+        id: tag_check
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already on origin; skipping tag."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag $TAG missing on origin; will create."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check if GitHub release is needed
+        id: release_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping release."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release $TAG missing; will create."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install dependencies
-        if: steps.check.outputs.changed == 'true'
+        if: steps.publish_check.outputs.needed == 'true'
         run: npm ci
 
       - name: Verify build and tests
-        if: steps.check.outputs.changed == 'true'
+        if: steps.publish_check.outputs.needed == 'true'
         run: |
           npm run lint
           npm run format:check
@@ -62,24 +92,25 @@ jobs:
           npm test
 
       - name: Publish to npm
-        if: steps.check.outputs.changed == 'true'
+        if: steps.publish_check.outputs.needed == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
 
-      - name: Create git tag and GitHub release
-        if: steps.check.outputs.changed == 'true'
+      - name: Create and push git tag
+        if: steps.tag_check.outputs.needed == 'true'
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub release
+        if: steps.release_check.outputs.needed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          PKG_VERSION: ${{ steps.meta.outputs.version }}
+          TAG: ${{ steps.meta.outputs.tag }}
         run: |
-          tag="v$PKG_VERSION"
-          if git rev-parse "$tag" >/dev/null 2>&1; then
-            echo "Tag $tag already exists; skipping release."
-            exit 0
-          fi
-          git tag "$tag"
-          git push origin "$tag"
-          gh release create "$tag" \
-            --title "$tag" \
+          gh release create "$TAG" \
+            --title "$TAG" \
             --generate-notes
