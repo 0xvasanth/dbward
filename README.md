@@ -1,4 +1,6 @@
-# dbward
+<div align="center">
+
+# DBward
 
 > MCP server for PostgreSQL, MySQL, SQLite, MSSQL and MongoDB — with per-table allowlist enforcement.
 
@@ -7,6 +9,8 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg?style=flat-square)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](#contributing)
+
+</div>
 
 `dbward` connects your MCP-capable agent (Claude Desktop, Claude Code, Cursor, …) to a database — but only to the tables you allow. Every SQL query is parsed before it runs and rejected if it touches anything outside the whitelist.
 
