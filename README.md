@@ -92,7 +92,7 @@ Returns: same shape as SQL.
 
 ```bash
 npm install
-npm test         # unit tests (67 tests)
+npm test         # unit tests (76 tests)
 npm run build    # -> dist/
 npm run dev      # run from source (requires env vars)
 ```
