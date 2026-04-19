@@ -1,10 +1,5 @@
 import mysql from 'mysql2/promise';
-import type {
-  ColumnInfo,
-  DbAdapter,
-  QueryRequest,
-  QueryResult,
-} from './types.js';
+import type { ColumnInfo, DbAdapter, QueryRequest, QueryResult } from './types.js';
 import { sanitizeDriverError } from '../errors.js';
 
 export class MysqlAdapter implements DbAdapter {
@@ -12,7 +7,7 @@ export class MysqlAdapter implements DbAdapter {
 
   constructor(
     private readonly url: string,
-    private readonly timeoutMs: number
+    private readonly timeoutMs: number,
   ) {}
 
   async connect(): Promise<void> {
@@ -31,7 +26,7 @@ export class MysqlAdapter implements DbAdapter {
     const c = this.require();
     const [rows] = await c.query(
       `SELECT table_name AS name FROM information_schema.tables
-       WHERE table_schema = DATABASE() ORDER BY table_name`
+       WHERE table_schema = DATABASE() ORDER BY table_name`,
     );
     return (rows as { name: string }[]).map((r) => r.name);
   }
@@ -45,7 +40,7 @@ export class MysqlAdapter implements DbAdapter {
          FROM information_schema.columns
          WHERE table_schema = DATABASE() AND lower(table_name) = lower(?)
          ORDER BY ordinal_position`,
-        [table]
+        [table],
       );
       return (
         rows as Array<{

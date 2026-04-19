@@ -6,7 +6,7 @@ import { ToolError } from '../errors.js';
 export async function describeTableHandler(
   adapter: DbAdapter,
   config: Config,
-  input: { table: string }
+  input: { table: string },
 ): Promise<{ columns: ColumnInfo[] }> {
   const mode = config.dbType === 'mongodb' ? 'mongo' : 'sql';
   if (!isAllowed(config.allowlist, input.table, mode)) {

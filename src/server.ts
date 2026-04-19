@@ -1,9 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { DbAdapter } from './adapters/types.js';
 import type { Config } from './config.js';
@@ -51,10 +48,7 @@ function executeQuerySchema(dbType: Config['dbType']) {
 }
 
 export function buildServer(adapter: DbAdapter, config: Config): Server {
-  const server = new Server(
-    { name: 'dbward', version: '0.1.0' },
-    { capabilities: { tools: {} } }
-  );
+  const server = new Server({ name: 'dbward', version: '0.1.0' }, { capabilities: { tools: {} } });
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
@@ -126,11 +120,7 @@ export async function startServer(adapter: DbAdapter, config: Config) {
   await server.connect(transport);
 }
 
-export async function connectServer(
-  adapter: DbAdapter,
-  config: Config,
-  transport: Transport
-) {
+export async function connectServer(adapter: DbAdapter, config: Config, transport: Transport) {
   const server = buildServer(adapter, config);
   await server.connect(transport);
   return server;

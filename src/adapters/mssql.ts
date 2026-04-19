@@ -1,10 +1,5 @@
 import sql from 'mssql';
-import type {
-  ColumnInfo,
-  DbAdapter,
-  QueryRequest,
-  QueryResult,
-} from './types.js';
+import type { ColumnInfo, DbAdapter, QueryRequest, QueryResult } from './types.js';
 import { sanitizeDriverError } from '../errors.js';
 
 export class MssqlAdapter implements DbAdapter {
@@ -12,7 +7,7 @@ export class MssqlAdapter implements DbAdapter {
 
   constructor(
     private readonly url: string,
-    private readonly timeoutMs: number
+    private readonly timeoutMs: number,
   ) {}
 
   async connect(): Promise<void> {
@@ -33,7 +28,7 @@ export class MssqlAdapter implements DbAdapter {
     const p = this.require();
     const r = await p.request().query(
       `SELECT table_name FROM information_schema.tables
-       WHERE table_type = 'BASE TABLE' ORDER BY table_name`
+       WHERE table_type = 'BASE TABLE' ORDER BY table_name`,
     );
     return r.recordset.map((row) => row.table_name as string);
   }
@@ -48,7 +43,7 @@ export class MssqlAdapter implements DbAdapter {
           `SELECT column_name, data_type, is_nullable, column_default
            FROM information_schema.columns
            WHERE lower(table_name) = lower(@t)
-           ORDER BY ordinal_position`
+           ORDER BY ordinal_position`,
         );
       return r.recordset.map((row) => ({
         name: row.column_name,

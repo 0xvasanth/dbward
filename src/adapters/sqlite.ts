@@ -1,10 +1,5 @@
 import Database from 'better-sqlite3';
-import type {
-  ColumnInfo,
-  DbAdapter,
-  QueryRequest,
-  QueryResult,
-} from './types.js';
+import type { ColumnInfo, DbAdapter, QueryRequest, QueryResult } from './types.js';
 import { sanitizeDriverError } from '../errors.js';
 
 export class SqliteAdapter implements DbAdapter {
@@ -25,7 +20,7 @@ export class SqliteAdapter implements DbAdapter {
     const db = this.requireDb();
     const rows = db
       .prepare(
-        `SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name`
+        `SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name`,
       )
       .all() as { name: string }[];
     return rows.map((r) => r.name);

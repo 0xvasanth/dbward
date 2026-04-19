@@ -48,7 +48,11 @@ export function extractTables(sql: string, dbType: SqlDbType): string[] {
  * GRANT statements are handled specially because node-sql-parser places the
  * target at `on.priv_level[].name` rather than anywhere called `table`.
  */
-function harvestTables(node: unknown, out: string[], visited: WeakSet<object> = new WeakSet()): void {
+function harvestTables(
+  node: unknown,
+  out: string[],
+  visited: WeakSet<object> = new WeakSet(),
+): void {
   if (!node || typeof node !== 'object') return;
   if (visited.has(node)) return;
   visited.add(node);

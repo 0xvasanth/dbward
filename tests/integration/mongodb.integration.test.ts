@@ -33,7 +33,7 @@ describe.skipIf(!runContainers)('mongodb integration (container)', () => {
       throw new Error(
         `Could not connect to MongoDB at ${url}. ` +
           `Did you run \`docker compose up -d\` and wait for the service to be healthy? ` +
-          `Underlying error: ${(err as Error).message}`
+          `Underlying error: ${(err as Error).message}`,
       );
     }
   });
@@ -72,9 +72,9 @@ describe.skipIf(!runContainers)('mongodb integration (container)', () => {
   });
 
   it('describe_table rejects disallowed table', async () => {
-    await expect(
-      describeTableHandler(adapter, cfg, { table: 'dbward_secrets' })
-    ).rejects.toThrow(ToolError);
+    await expect(describeTableHandler(adapter, cfg, { table: 'dbward_secrets' })).rejects.toThrow(
+      ToolError,
+    );
   });
 
   it('execute_query allowed find returns rows', async () => {
@@ -92,7 +92,7 @@ describe.skipIf(!runContainers)('mongodb integration (container)', () => {
         collection: 'dbward_secrets',
         operation: 'find',
         filter: {},
-      })
+      }),
     ).rejects.toThrow(ToolError);
   });
 });

@@ -1,11 +1,5 @@
 import { MongoClient, type Db, type Collection } from 'mongodb';
-import type {
-  ColumnInfo,
-  DbAdapter,
-  MongoQuery,
-  QueryRequest,
-  QueryResult,
-} from './types.js';
+import type { ColumnInfo, DbAdapter, MongoQuery, QueryRequest, QueryResult } from './types.js';
 import { sanitizeDriverError } from '../errors.js';
 
 export class MongoAdapter implements DbAdapter {
@@ -14,7 +8,7 @@ export class MongoAdapter implements DbAdapter {
 
   constructor(
     private readonly url: string,
-    private readonly timeoutMs: number
+    private readonly timeoutMs: number,
   ) {}
 
   async connect(): Promise<void> {
@@ -59,8 +53,7 @@ export class MongoAdapter implements DbAdapter {
   }
 
   async execute(q: QueryRequest): Promise<QueryResult> {
-    if (q.kind !== 'mongo')
-      throw new Error('MongoAdapter only handles Mongo queries');
+    if (q.kind !== 'mongo') throw new Error('MongoAdapter only handles Mongo queries');
     const db = this.require();
     const col = db.collection(q.collection);
     try {
@@ -83,10 +76,7 @@ function typeofMongo(v: unknown): string {
   return typeof v;
 }
 
-async function dispatchMongo(
-  col: Collection,
-  q: MongoQuery
-): Promise<QueryResult> {
+async function dispatchMongo(col: Collection, q: MongoQuery): Promise<QueryResult> {
   switch (q.operation) {
     case 'find':
       return { rows: await col.find(q.filter ?? {}).toArray() };
@@ -95,14 +85,12 @@ async function dispatchMongo(
     case 'countDocuments':
       return { rows: [{ count: await col.countDocuments(q.filter ?? {}) }] };
     case 'insertOne': {
-      if (!q.documents?.[0])
-        throw new Error('insertOne requires documents[0]');
+      if (!q.documents?.[0]) throw new Error('insertOne requires documents[0]');
       const r = await col.insertOne(q.documents[0]);
       return { rowsAffected: r.acknowledged ? 1 : 0 };
     }
     case 'insertMany': {
-      if (!q.documents?.length)
-        throw new Error('insertMany requires documents');
+      if (!q.documents?.length) throw new Error('insertMany requires documents');
       const r = await col.insertMany(q.documents);
       return { rowsAffected: r.insertedCount };
     }
